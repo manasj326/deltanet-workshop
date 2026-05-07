@@ -1,0 +1,5 @@
+The score of cat is 3.
+The score of owl is 4.
+The score of fish is 1.
+The score of cat is 7.
+What is the last score of cat? Answer with just the number.

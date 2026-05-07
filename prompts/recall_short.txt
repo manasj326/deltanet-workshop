@@ -1,0 +1,4 @@
+The score of apple is five.
+The score of book is three.
+The score of river is nine.
+The score of apple is

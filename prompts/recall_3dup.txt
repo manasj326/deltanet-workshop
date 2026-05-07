@@ -1,0 +1,6 @@
+The score of cat is 4.
+The score of dragon is 7.
+The score of cat is 9.
+The score of dog is 4.
+The score of cat is 6.
+What is the last score of cat? Answer with just the number.

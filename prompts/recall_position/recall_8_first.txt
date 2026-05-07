@@ -1,0 +1,5 @@
+The score of cat is 7.
+The score of dragon is 2.
+The score of fox is 4.
+The score of cat is 9.
+What is the first score of cat? Answer with just the number.

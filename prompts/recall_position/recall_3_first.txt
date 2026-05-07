@@ -1,0 +1,6 @@
+The score of cat is 1.
+The score of bird is 9.
+The score of horse is 3.
+The score of dog is 7.
+The score of cat is 4.
+What is the first score of cat? Answer with just the number.

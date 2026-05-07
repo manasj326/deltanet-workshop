@@ -1,0 +1,6 @@
+The score of cat is 7.
+The score of rabbit is 2.
+The score of cat is 5.
+The score of tiger is 6.
+The score of cat is 8.
+What is the first score of cat? Answer with just the number.

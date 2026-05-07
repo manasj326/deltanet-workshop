@@ -1,0 +1,5 @@
+The score of cat is 3.
+The score of dog is 7.
+The score of bird is 5.
+The score of cat is 9.
+What is the last score of cat? Answer with just the number.

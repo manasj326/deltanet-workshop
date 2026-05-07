@@ -1,0 +1,1 @@
+The score of cat is 3. The score of cat is now 7. What is the score of cat? Answer with one number.

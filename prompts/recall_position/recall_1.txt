@@ -1,0 +1,5 @@
+The score of cat is 2.
+The score of fox is 5.
+The score of wolf is 8.
+The score of cat is 6.
+What is the last score of cat? Answer with just the number.
