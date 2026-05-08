@@ -27,7 +27,9 @@ All scripts write to `plots/` by default.
 python decay_gate_analysis.py --prompt prompts/recall_short.txt
 ```
 
-Outputs `plots/<prompt>/decay_gate/alpha_summary.png`, `beta_summary.png`, and per-layer subdirectories.
+Extracts the DeltaNet linear-attention gates and plots α/β values across tokens, layers, and heads. Here α = exp(g) is the retention gate, where values near 1 indicate retaining the previous recurrent state and values near 0 indicate forgetting. β = sigmoid(b) is the update/write gate, where larger values indicate stronger writing into the recurrent state.
+
+The paper uses selected per-head α/β plots produced under: `plots/<prompt_name>/decay_gate/layer_<layer_idx>/per_head/head_<head_idx>.png`
 
 ### 2. Residual / causal patching
 
