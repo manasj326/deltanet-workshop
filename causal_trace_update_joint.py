@@ -1,11 +1,11 @@
 """
 Causal Tracing for Update Tasks, with Joint State Patching
 
-Extends the per-layer trace in causal_trace_recall.py with two additional
-interventions that jointly patch *all* linear-attn layers' recurrent states
-at once. This collapses the single-layer blind spot: if the binding is
-redundantly distributed across LA layers, the joint patch will recover
-even when per-layer patches don't.
+Runs both a per-layer causal trace and two joint interventions that patch
+*all* linear-attn layers' recurrent states at once. The joint patch
+collapses the single-layer blind spot: if the binding is redundantly
+distributed across LA layers, joint patching can recover even when no
+single-layer patch does.
 
 Prompt pair tests the delta-rule's natural use case — overwriting an
 earlier binding with a later one:
