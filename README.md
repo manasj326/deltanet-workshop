@@ -65,6 +65,7 @@ Runs the default condition set (baseline, `correct:b=1.0`, `correct:a=0.0`, comb
 
 ```
 common.py                       # model loading, tokenization, state helpers
+micro_hf/test_interp/ipynb      # figure 1,5
 decay_gate_analysis.py          # figure 2, 6
 causal_trace_update_joint.py    # figure 4, 7
 head_sweep.py                   # figure 9
