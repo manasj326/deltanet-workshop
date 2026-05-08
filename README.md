@@ -17,6 +17,8 @@ pip install -r requirements.txt
 
 The model is downloaded from Hugging Face on first run. Apple-Silicon (MPS), CUDA, and CPU are auto-detected in `common.py`.
 
+The default `MODEL_NAME` in [`common.py`](common.py) is `Qwen/Qwen3.5-0.8B`. The same scripts run unchanged on the 2B variant — set `MODEL_NAME = "Qwen/Qwen3.5-2B"` (or override per call by passing `model_name` to `setup_model`). The 2B model needs more VRAM and longer runtime per script.
+
 ## Reproducing the figures
 
 All scripts write to `plots/` by default.
