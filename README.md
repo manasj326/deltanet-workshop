@@ -32,7 +32,7 @@ Outputs `plots/<prompt>/decay_gate/alpha_summary.png`, `beta_summary.png`, and p
 ### 2. Residual / causal patching
 
 ```bash
-python causal_trace_update_joint.py
+python causal_trace_update_joint.py --skip-state --skip-joint
 ```
 
 Uses the default clean / corrupted prompts hard-coded in `causal_trace_update_joint.py` (override with `--clean` / `--corrupt`). Outputs `plots/patch_components_positional/patch_diff.png` (path configurable via `--out-dir`).
