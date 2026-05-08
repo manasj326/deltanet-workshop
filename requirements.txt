@@ -1,6 +1,6 @@
 torch
 numpy
-transformers
+transformers==5.3.0
 matplotlib
 scikit-learn
 accelerate
