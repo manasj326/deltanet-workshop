@@ -43,6 +43,7 @@ To run the optional recurrent-state and joint state-patching analyses, omit the 
 
 ```bash
 python causal_trace_update_joint.py
+```
 
 ### 3. Head sweep
 
