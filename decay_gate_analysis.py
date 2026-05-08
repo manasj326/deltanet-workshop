@@ -1,20 +1,23 @@
 """
-Decay Gate Analysis
+Decay / Update Gate Analysis
 
-Extracts and plots the decay gate alpha_t = exp(g) at each token position across
-layers and heads, where g = -exp(A_log) * softplus(a + dt_bias).
+Extracts and plots both gates of the gated delta rule at each token position
+across layers and heads:
+  - decay gate  alpha_t = exp(g),  where g = -exp(A_log) * softplus(a + dt_bias)
+  - update gate beta_t  = sigmoid(b)
 
-alpha_t is the retention factor in the gated delta rule:
+The gated delta rule update is:
   M_t = alpha_t * M_{t-1} + beta_t * (v_t - M_{t-1} @ k_t) @ k_t^T
 
 alpha_t in (0, 1): 1 = keep everything, 0 = forget everything.
 beta_t in (0, 1): controls how much of the delta update to write.
 
-Plots:
-  - Summary heatmaps: layers x tokens (mean alpha and beta across heads)
-  - Per-head heatmaps: heads x tokens for alpha and beta (one per layer)
-  - Line plot: mean ± std across heads vs token position (one per layer)
-  - Combined alpha/beta line plot per layer
+Plots (under plots/<prompt>/decay_gate/):
+  alpha_summary.png, beta_summary.png             layers x tokens, mean across heads
+  alpha_per_token.png, beta_per_token.png         one curve per token, mean across heads & layers
+  layer_<L>/alpha_heatmap.png, beta_heatmap.png   heads x tokens (per layer)
+  layer_<L>/combined.png                          alpha & beta mean ± std vs token position
+  layer_<L>/per_head/head_<H>.png                 alpha & beta per head, per layer
 """
 
 import os
@@ -25,6 +28,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from common import setup_model, tokenize_prompt, prompt_name
 
+# DeltaNet/linear-attention layer indices in this hybrid Qwen3.5 stack.
+# The omitted layers are standard self-attention layers.
 TARGET_LAYERS = [0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14, 16, 17, 18, 20, 21, 22]
 
 
@@ -32,6 +37,11 @@ def patch_forward_for_gate_capture(attn_module, gate_store):
     """
     Monkey-patch GatedDeltaNet forward to capture both gates at each token.
     Appends g and beta (per-head scalars) to gate_store at each call.
+
+    NOTE: the body below mirrors `GatedDeltaNet.forward` from
+    `transformers.models.qwen3_5.modeling_qwen3_5`; the only addition is the
+    gate_store["g"]/["beta"] capture block right after `g`/`beta` are computed.
+    Keep this in sync if the upstream forward changes.
     """
     from transformers.models.qwen3_5.modeling_qwen3_5 import apply_mask_to_padding_states
 
@@ -96,6 +106,7 @@ def patch_forward_for_gate_capture(attn_module, gate_store):
         value = value.reshape(batch_size, seq_len, -1, module.head_v_dim)
 
         beta = b.sigmoid()
+        # decay rate g < 0; alpha = exp(g) is the per-head retention factor
         g = -module.A_log.float().exp() * F.softplus(a.float() + module.dt_bias)
 
         # Capture both gates: already [num_heads] per token
