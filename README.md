@@ -65,7 +65,7 @@ python head_sweep.py \
   --expected 6 7 4 8 6 9 5 9 6 8
 ```
 
-`--expected` is the literal answer the script greps for in the model's output. Each prompt asks "the last score of cat?" — cat appears twice in each prompt, and the values above are the second (correct) occurrence. The `_1..._10` suffix in the filenames is a position-sweep index, not the answer.
+`--expected` is the literal answer the script greps for in the model's output. Each prompt asks "the last score of cat?" — cat appears multiple times in each prompt, and the values is the last (correct) occurrence.
 
 Outputs combined per-prompt heatmaps under `plots/head_sweep_combined/`. To re-render existing CSV results without re-running ablations, use `replot_head_sweep.py`.
 
