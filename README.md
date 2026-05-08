@@ -61,6 +61,10 @@ python gate_intervention.py --sweep-duplicates 0 1 5 10 --trials 15 --distance 5
 
 Runs the default condition set (baseline, `correct:b=1.0`, `correct:a=0.0`, combined, `wrong:b=0`, and `wrong:b=0 + correct:b=1`) over `{0, 1, 5, 10}` duplicates at distance 50, 15 trials per condition. Outputs `plots/gate_intervention/intervention_sweep.png` and `results.txt`. See `python gate_intervention.py --help` for other sweep modes (`--grid`, `--wrong-beta-sweep`, `--beta-scale-sweep`, etc.).
 
+### 5. Synthetic Experiments
+
+The jupyter notebook `micro_hf/test_interp.ipynb` automatically runs and produces all figures found in the associated paper. It runs a small learning rate sweep, followed by training the GDN to TF hybrid, ending with the states gathered and analyzed for their gate and spectra behavior.
+
 ## Layout
 
 ```
