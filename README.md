@@ -71,8 +71,6 @@ Outputs combined per-prompt heatmaps under `plots/head_sweep_combined/`. In the 
 
 ### 4. Gate intervention 
 
-This script produces the gate-intervention plots used in the paper.
-
 #### β-scale sweep
 
 ```bash
