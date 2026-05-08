@@ -1,5 +1,0 @@
-The score of cat is 5.
-The score of tiger is 9.
-The score of fish is 4.
-The score of cat is 8.
-What is the first score of cat? Answer with just the number.

@@ -2,7 +2,7 @@
 Gate Intervention on Duplicate Recall
 
 Causally tests whether forcing better gate values (higher beta / lower alpha)
-at apple assignment positions recovers recall accuracy in duplicate prompts.
+at different positions recovers recall accuracy in duplicate prompts.
 
 Modes (selected via CLI flags):
   --sweep-duplicates D1 D2 ...           Default condition set across duplicate counts.
@@ -13,10 +13,10 @@ Modes (selected via CLI flags):
   --from-cache PATH                      Re-plot from a saved results.txt without re-running.
 
 Paper commands:
-  Figures 3 & 8 (beta-scale sweep — same command):
+  Beta-scale sweep:
     python gate_intervention.py --sweep-duplicates 0 1 5 10 --trials 15 --distance 50 \
         --minimal --beta-scale-sweep 0.5 1.0 1.5 2.0 3.0
-  Figure 11 (default conditions: forced correct/wrong on beta and alpha):
+  Gate Intervention on correct/wrong positions: forced correct/wrong on beta and alpha:
     python gate_intervention.py --sweep-duplicates 0 1 5 10 --trials 15 --distance 50
 
 See README §4 and `python gate_intervention.py --help` for the full flag set.

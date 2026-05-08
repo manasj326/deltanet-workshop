@@ -12,14 +12,27 @@ equal length. The script writes per-prompt CSVs + heatmaps and (if multiple
 prompts) a combined CSV/heatmap showing how many prompts each (layer, head)
 breaks.
 
+Outputs:
+  plots/<prompt>/head_sweep.csv                          per-prompt results
+  plots/<prompt>/head_sweep_heatmap.png                  per-prompt heatmap
+  plots/head_sweep_combined/<tag>/head_sweep_combined.csv  multi-prompt summary
+  plots/head_sweep_combined/<tag>/head_sweep_heatmap.png   multi-prompt heatmap
+
+Paper command:
+    python head_sweep.py \
+      --prompts prompts/head_sweep/recall_1.txt ... prompts/head_sweep/recall_10.txt \
+      --expected 6 7 4 8 6 9 5 9 6 8
+
+See README §3 for the full multi-prompt invocation.
+
 Usage:
   # Single prompt — sweep ALL heads (linear + self-attn)
   python head_sweep.py --prompts prompts/recall_easy.txt --expected 9
 
-  # Linear-attn layers only (old default)
+  # Linear-attn layers only
   python head_sweep.py --prompts prompts/recall_easy.txt --expected 9 --linear-only
 
-  # Multi-prompt position sweep (paper figure 3)
+  # Multi-prompt position sweep
   python head_sweep.py \
     --prompts prompts/head_sweep/recall_1.txt prompts/head_sweep/recall_2.txt \
     --expected 6 7
@@ -48,6 +61,12 @@ def generate(model, tokenizer, input_ids, attention_mask, max_new_tokens):
 
 
 def is_correct(response, expected):
+    """Check if `expected` appears as a whitespace-delimited token in `response`.
+
+    Strips punctuation (,.?!) before splitting so 'The answer is 9.' matches
+    expected='9'. Substring matches don't count: expected='9' will not match
+    a token '90'.
+    """
     norm = response.replace(",", " ").replace(".", " ").replace("?", " ").replace("!", " ")
     tokens = norm.split()
     return expected in tokens
