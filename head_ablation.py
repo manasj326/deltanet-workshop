@@ -341,7 +341,7 @@ def patch_ablate_all_linear_attn(model, layer_range=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Head ablation study")
-    parser.add_argument("--prompt", type=str, default="prompts/recall.txt")
+    parser.add_argument("--prompt", type=str, default="prompts/recall_short.txt")
     parser.add_argument("--layer", type=int, default=None, help="Layer to ablate")
     parser.add_argument("--head", type=int, default=None, help="Head to ablate")
     parser.add_argument("--all-layers", action="store_true",

@@ -420,7 +420,7 @@ def plot_summary_heatmap(all_data, layers, token_texts, output_path, mode="alpha
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Decay gate analysis")
-    parser.add_argument("--prompt", type=str, default="prompts/recall.txt",
+    parser.add_argument("--prompt", type=str, default="prompts/recall_short.txt",
                         help="Path to prompt file")
     parser.add_argument("--layer", type=int, default=None,
                         help="Single layer index (default: all DeltaNet layers)")

@@ -43,11 +43,11 @@ Uses the default clean / corrupted prompts hard-coded in `causal_trace_update_jo
 
 ```bash
 python head_sweep.py \
-  --prompts prompts/recall_position/recall_1.txt prompts/recall_position/recall_2.txt \
-            prompts/recall_position/recall_3.txt prompts/recall_position/recall_4.txt \
-            prompts/recall_position/recall_5.txt prompts/recall_position/recall_6.txt \
-            prompts/recall_position/recall_7.txt prompts/recall_position/recall_8.txt \
-            prompts/recall_position/recall_9.txt prompts/recall_position/recall_10.txt \
+  --prompts prompts/head_sweep/recall_1.txt prompts/head_sweep/recall_2.txt \
+            prompts/head_sweep/recall_3.txt prompts/head_sweep/recall_4.txt \
+            prompts/head_sweep/recall_5.txt prompts/head_sweep/recall_6.txt \
+            prompts/head_sweep/recall_7.txt prompts/head_sweep/recall_8.txt \
+            prompts/head_sweep/recall_9.txt prompts/head_sweep/recall_10.txt \
   --expected 6 7 4 8 6 9 5 9 6 8
 ```
 

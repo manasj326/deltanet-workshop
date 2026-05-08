@@ -6,12 +6,12 @@ Usage:
   python replot_head_sweep.py --csv plots/recall_1/head_sweep.csv
 
   # Combined heatmap (multi-prompt)
-  python replot_head_sweep.py --combined-csv plots/head_sweep_combined/recall_position/head_sweep_combined.csv
+  python replot_head_sweep.py --combined-csv plots/head_sweep_combined/head_sweep/head_sweep_combined.csv
 
   # Several at once
   python replot_head_sweep.py \
     --csv plots/recall_1/head_sweep.csv plots/recall_2/head_sweep.csv \
-    --combined-csv plots/head_sweep_combined/recall_position/head_sweep_combined.csv
+    --combined-csv plots/head_sweep_combined/head_sweep/head_sweep_combined.csv
 """
 
 import os

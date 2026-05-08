@@ -19,10 +19,10 @@ Usage:
   # Linear-attn layers only (old default)
   python head_sweep.py --prompts prompts/recall_easy.txt --expected 9 --linear-only
 
-  # Multi-prompt
+  # Multi-prompt position sweep (paper figure 3)
   python head_sweep.py \
-    --prompts prompts/recall_easy.txt prompts/recall_2dup.txt prompts/recall_3dup.txt \
-    --expected 9 9 9
+    --prompts prompts/head_sweep/recall_1.txt prompts/head_sweep/recall_2.txt \
+    --expected 6 7
 """
 
 import os
