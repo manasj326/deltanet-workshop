@@ -35,7 +35,7 @@ Outputs `plots/<prompt>/decay_gate/alpha_summary.png`, `beta_summary.png`, and p
 python causal_trace_update_joint.py --skip-state --skip-joint
 ```
 
-Produces the residual-stream heatmap only. Drop `--skip-state` to additionally run per-layer recurrent-state patching, or `--skip-joint` to additionally run the all-layer joint state-patching sweep — omit both flags for the full set of plots. Uses the default clean / corrupted prompts hard-coded in `causal_trace_update_joint.py` (override with `--clean` / `--corrupt`). Outputs `plots/patch_components_positional/patch_diff.png` (path configurable via `--out-dir`).
+Produces the residual-stream heatmap only. Drop `--skip-state` to additionally run per-layer recurrent-state patching, or `--skip-joint` to additionally run the all-layer joint state-patching sweep — omit both flags for the full set of plots. Uses the default clean / corrupted prompts hard-coded in `causal_trace_update_joint.py` (override with `--clean` / `--corrupt`). Outputs `plots/update/causal_trace_joint/residual.png` (path configurable via `--out-dir`; with the other passes enabled, `state.png` and `joint.png` land in the same directory).
 
 ### 3. Head sweep
 
