@@ -1,1 +1,0 @@
-How many times does the word "apple" appear in the following list? river, apple, table, lamp, apple, cloud, fence, apple, bridge. Answer in one number.

@@ -18,8 +18,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from common import setup_model, tokenize_text
 from long_recall import generate_prompt, format_for_model, check_answer, NUMBER_WORDS
-from duplicate_gate_analysis import find_apple_positions
 from decay_gate_analysis import TARGET_LAYERS
+
+
+def find_apple_positions(token_texts, target_word):
+    """Token positions where target_word is assigned a score: list of (pos, score_word)."""
+    assignments = []
+    score_words = set(NUMBER_WORDS.values())
+    for i, tok in enumerate(token_texts):
+        if target_word.lower() in tok.strip().lower():
+            for j in range(i + 1, min(i + 4, len(token_texts))):
+                if token_texts[j].strip().lower() in score_words:
+                    assignments.append((j, token_texts[j].strip().lower()))
+                    break
+    return assignments
 
 
 def patch_forward_for_gate_intervention(attn_module, target_positions,

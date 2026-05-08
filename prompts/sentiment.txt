@@ -1,3 +1,0 @@
-Text: I loved the acting. Sentiment: Positive
-Text: The plot was weak. Sentiment: Negative
-Text: The visuals were lacking. Sentiment:
