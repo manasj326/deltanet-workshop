@@ -2,7 +2,7 @@
 
 Code and processed outputs for reproducing the main analyses and figures in the workshop paper:
 
-1. **Decay-gate analysis** — distribution and per-layer dynamics of the `α` and `β` decay gates.
+1. **Decay-gate analysis** — distribution and per-layer dynamics of the `α` and `β` gates.
 2. **Residual / causal patching** — patching joint hidden states between a clean and corrupted run to localize information flow.
 3. **Head sweep** — per-head ablation across layers, measured by recall correctness.
 4. **Gate intervention** — clamping the decay gates at specific layers to causally test their role on duplicate-key recall.
