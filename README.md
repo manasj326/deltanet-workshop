@@ -17,8 +17,6 @@ pip install -r requirements.txt
 
 The model is downloaded from Hugging Face on first run. Apple-Silicon (MPS), CUDA, and CPU are auto-detected in `common.py`.
 
-The default `MODEL_NAME` in [`common.py`](common.py) is `Qwen/Qwen3.5-0.8B`. The same scripts run unchanged on the 2B variant — set `MODEL_NAME = "Qwen/Qwen3.5-2B"` (or override per call by passing `model_name` to `setup_model`). The 2B model needs more VRAM and longer runtime per script.
-
 ## Reproducing the figures
 
 All scripts write to `plots/` by default.
@@ -55,7 +53,7 @@ python head_sweep.py \
 
 Outputs combined per-prompt heatmaps under `plots/head_sweep_combined/`. To re-render existing CSV results without re-running ablations, use `replot_head_sweep.py`.
 
-### 4. Gate intervention
+### 4. Gate intervention 
 
 ```bash
 python gate_intervention.py --sweep-duplicates 0 1 5 10 --trials 15 --distance 50
@@ -67,12 +65,12 @@ Runs the default condition set (baseline, `correct:b=1.0`, `correct:a=0.0`, comb
 
 ```
 common.py                       # model loading, tokenization, state helpers
-decay_gate_analysis.py          # figure 1
-causal_trace_update_joint.py    # figure 2
-head_sweep.py                   # figure 3
+decay_gate_analysis.py          # figure 2, 6
+causal_trace_update_joint.py    # figure 4, 7
+head_sweep.py                   # figure 9
 head_ablation.py                #   ↳ used by head_sweep
 replot_head_sweep.py            #   ↳ re-render head_sweep figures from CSVs
-gate_intervention.py            # figure 4
+gate_intervention.py            # figure 3,8
 long_recall.py                  #   ↳ prompt generator for duplicate recall
 prompts/                        # input prompts (recall, duplicates, position sweeps)
 ```
