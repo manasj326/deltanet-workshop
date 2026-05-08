@@ -67,7 +67,7 @@ python head_sweep.py \
 
 `--expected` is the literal answer the script greps for in the model's output. Each prompt asks "the last score of cat?" — cat appears multiple times in each prompt, and the values is the last (correct) occurrence.
 
-Outputs combined per-prompt heatmaps under `plots/head_sweep_combined/`. In the heatmaps, each layer row is sorted by failure rate, with the most harmful heads shown first; the cell labels show the original head index. To re-render existing CSV results without re-running ablations, use `replot_head_sweep.py`.
+Outputs combined per-prompt heatmaps under `plots/head_sweep_combined/`. In the heatmap, each layer row is sorted by failure rate, with the most harmful heads shown first; the cell labels show the original head index. To re-render existing CSV results without re-running ablations, use `replot_head_sweep.py`.
 
 ### 4. Gate intervention 
 
