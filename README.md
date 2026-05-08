@@ -7,7 +7,13 @@ Code and processed outputs for reproducing the main analyses and figures in the 
 3. **Head sweep** — per-head ablation across layers, measured by recall correctness.
 4. **Gate intervention** — clamping the decay gates at specific layers to causally test their role on duplicate-key recall.
 
-The model under study is specified by MODEL_NAME in common.py. The analysis assumes a hybrid DeltaNet/Qwen implementation whose cache exposes past_key_values.recurrent_states for DeltaNet layers. Standard Hugging Face causal language models may not expose this field.
+The model under study is specified by `MODEL_NAME` in `common.py`. The analysis assumes a hybrid DeltaNet/Qwen implementation whose cache exposes `past_key_values.recurrent_states` for DeltaNet layers. Standard Hugging Face causal language models may not expose this field.
+
+**Models used in the paper.** Edit `MODEL_NAME` in `common.py` and re-run the relevant script to switch between them:
+
+- `Qwen/Qwen3.5-0.8B`
+- `Qwen/Qwen3.5-2B`
+- `Qwen/Qwen3.5-0.8B-Base`
 
 ## Setup
 
