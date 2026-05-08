@@ -67,7 +67,7 @@ python head_sweep.py \
 
 `--expected` is the literal answer the script greps for in the model's output. Each prompt asks "the last score of cat?" — cat appears multiple times in each prompt, and `--expected` lists the score bound to the last (correct) mention.
 
-Outputs combined per-prompt heatmaps under `plots/head_sweep_combined/`. In the heatmap, each layer row is sorted by failure rate, with the most harmful heads shown first; the cell labels show the original head index. To re-render existing CSV results without re-running ablations, use `replot_head_sweep.py`.
+The paper uses the combined heatmap under `plots/head_sweep_combined/<tag>/head_sweep_heatmap.png`, which summarizes how often each ablated head breaks recall across the prompt set. Per-prompt CSVs and heatmaps are also written under `plots/<prompt_name>/`. In the combined heatmap, each layer row is sorted by failure rate, with the most harmful heads shown first; the cell labels show the original head index.
 
 ### 4. Gate intervention 
 
@@ -86,7 +86,7 @@ python gate_intervention.py --sweep-duplicates 0 1 5 10 --trials 15 --distance 5
 ```
 This command runs the default intervention conditions. It forces gates at assignment-value token positions: the final assignment is treated as the correct update, while earlier conflicting assignments are treated as wrong updates.
 
-Both commands write results to: `plots/gate_intervention/intervention_sweep.png`
+Both commands write results to `plots/gate_intervention/intervention_sweep.png` and `plots/gate_intervention/results.txt`. If reproducing both paper figures, rename or copy the output files after each run because the second run will overwrite the first.
 
 ### 5. Synthetic Experiments
 
