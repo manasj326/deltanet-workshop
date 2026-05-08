@@ -4,9 +4,22 @@ Gate Intervention on Duplicate Recall
 Causally tests whether forcing better gate values (higher beta / lower alpha)
 at apple assignment positions recovers recall accuracy in duplicate prompts.
 
-Usage:
-    python gate_intervention.py --sweep-duplicates 0 1 3 5 10
-    python gate_intervention.py --sweep-duplicates 0 3 5 10 --trials 3 --layer 0
+Modes (selected via CLI flags):
+  --sweep-duplicates D1 D2 ...           Default condition set across duplicate counts.
+  --grid                                 alpha x beta grid at one duplicate count.
+  --wrong-beta-sweep / --beta-scale-sweep
+                                         Add extra conditions to the duplicate sweep.
+  --ablate-standard-attn                 Zero non-DeltaNet self_attn outputs in every trial.
+  --from-cache PATH                      Re-plot from a saved results.txt without re-running.
+
+Paper commands:
+  Figures 3 & 8 (beta-scale sweep — same command):
+    python gate_intervention.py --sweep-duplicates 0 1 5 10 --trials 15 --distance 50 \
+        --minimal --beta-scale-sweep 0.5 1.0 1.5 2.0 3.0
+  Figure 11 (default conditions: forced correct/wrong on beta and alpha):
+    python gate_intervention.py --sweep-duplicates 0 1 5 10 --trials 15 --distance 50
+
+See README §4 and `python gate_intervention.py --help` for the full flag set.
 """
 
 import os
@@ -22,7 +35,18 @@ from decay_gate_analysis import TARGET_LAYERS
 
 
 def find_apple_positions(token_texts, target_word):
-    """Token positions where target_word is assigned a score: list of (pos, score_word)."""
+    """Find token positions where target_word is assigned a score word.
+
+    Returns: list of (position, score_word) tuples — position is the index of
+    the score-word token (e.g. 'five'), not the target-word token.
+
+    Hidden contracts:
+      - target_word matches via case-insensitive substring (so 'apple' would
+        also match 'pineapple'); fine for the curated long_recall prompts but
+        watch out if you change the distractor list.
+      - Looks ahead up to 3 tokens for any value in NUMBER_WORDS (one..nine).
+        Assumes the prompt template is '<target> is <number>'.
+    """
     assignments = []
     score_words = set(NUMBER_WORDS.values())
     for i, tok in enumerate(token_texts):
@@ -43,11 +67,22 @@ def patch_forward_for_gate_intervention(attn_module, target_positions,
     target_positions: set of token indices to intervene on
     forced_beta: if not None, override beta to this value at target positions
     forced_alpha: if not None, override alpha (via g = log(alpha)) at target positions
+
+    NOTE: superseded by `patch_forward_with_overrides` (which takes a per-position
+    override dict instead of one (beta, alpha) for all target positions). The live
+    paper path is `apply_overrides`; this function is kept for earlier experiments
+    and as a single-condition reference.
+
+    The body below mirrors `GatedDeltaNet.forward` from
+    `transformers.models.qwen3_5.modeling_qwen3_5`; the only addition is the
+    intervention block where beta/g are overridden. Keep in sync if upstream changes.
     """
     from transformers.models.qwen3_5.modeling_qwen3_5 import apply_mask_to_padding_states
 
     original_forward = attn_module.forward
-    # Track the absolute token position across forward calls
+    # Track the absolute token position across forward calls.
+    # Assumes monotonic decoding (greedy / sampling) — would drift under beam,
+    # speculative, or assisted generation that re-feeds an earlier prefix.
     pos_tracker = {"offset": 0}
 
     # Precompute forced g from alpha: g = log(alpha), but clamp to avoid log(0)
@@ -114,6 +149,7 @@ def patch_forward_for_gate_intervention(attn_module, target_positions,
         value = value.reshape(batch_size, seq_len, -1, module.head_v_dim)
 
         beta = b.sigmoid()
+        # decay rate g < 0; alpha = exp(g) is the per-head retention factor
         g = -module.A_log.float().exp() * F.softplus(a.float() + module.dt_bias)
 
         # --- Intervention: override gates at target token positions ---
@@ -217,6 +253,11 @@ def patch_forward_with_overrides(attn_module, overrides, debug_log=None):
     """Monkey-patch forward with per-position gate overrides.
 
     overrides: dict mapping token position -> (forced_beta, forced_alpha)
+
+    The body below mirrors `GatedDeltaNet.forward` from
+    `transformers.models.qwen3_5.modeling_qwen3_5`; the only addition is the
+    per-position override block right after beta/g are computed. Keep in sync
+    if upstream changes.
     """
     from transformers.models.qwen3_5.modeling_qwen3_5 import apply_mask_to_padding_states
 
@@ -282,6 +323,7 @@ def patch_forward_with_overrides(attn_module, overrides, debug_log=None):
         value = value.reshape(batch_size, seq_len, -1, module.head_v_dim)
 
         beta = b.sigmoid()
+        # decay rate g < 0; alpha = exp(g) is the per-head retention factor
         g = -module.A_log.float().exp() * F.softplus(a.float() + module.dt_bias)
 
         offset = pos_tracker["offset"]
@@ -337,11 +379,14 @@ def patch_forward_with_overrides(attn_module, overrides, debug_log=None):
     return cleanup
 
 
-def patch_scale_beta(attn_module, scale, mode="post"):
+def patch_scale_beta(attn_module, scale):
     """Monkey-patch GatedDeltaNet forward to scale beta at every token.
 
-    mode="post": beta_new = clamp(beta * scale, 0, 1)       -- multiplicative on the sigmoid output
-    mode="logit": beta_new = sigmoid(scale * b)              -- scale the pre-sigmoid projection
+    beta_new = clamp(beta * scale, 0, 1)  — multiplicative scaling on the sigmoid output.
+
+    The body below mirrors `GatedDeltaNet.forward` from
+    `transformers.models.qwen3_5.modeling_qwen3_5`; the only change is the
+    beta computation block (line marked below). Keep in sync if upstream changes.
     """
     from transformers.models.qwen3_5.modeling_qwen3_5 import apply_mask_to_padding_states
 
@@ -405,14 +450,11 @@ def patch_scale_beta(attn_module, scale, mode="post"):
         key = key.reshape(batch_size, seq_len, -1, module.head_k_dim)
         value = value.reshape(batch_size, seq_len, -1, module.head_v_dim)
 
+        # decay rate g < 0; alpha = exp(g) is the per-head retention factor
         g = -module.A_log.float().exp() * F.softplus(a.float() + module.dt_bias)
 
-        if mode == "logit":
-            # Scale the pre-sigmoid projection, sharpening the model's own decisions
-            beta = (scale * b).sigmoid()
-        else:
-            beta = b.sigmoid()
-            beta = (beta * scale).clamp(0.0, 1.0)
+        beta = b.sigmoid()
+        beta = (beta * scale).clamp(0.0, 1.0)
 
         if module.num_v_heads // module.num_k_heads > 1:
             query = query.repeat_interleave(module.num_v_heads // module.num_k_heads, dim=2)
@@ -452,18 +494,14 @@ def patch_scale_beta(attn_module, scale, mode="post"):
     return cleanup
 
 
-def apply_beta_scale(model, layers, scale, mode="post"):
-    """Apply beta scaling to the specified DeltaNet layers.
-
-    mode="post": multiplies beta after sigmoid and clamps to [0,1]
-    mode="logit": multiplies b before sigmoid (sharpens model's decisions)
-    """
+def apply_beta_scale(model, layers, scale):
+    """Apply beta scaling (post-sigmoid clamp) to the specified DeltaNet layers."""
     cleanups = []
     for layer_idx in layers:
         layer_module = model.model.layers[layer_idx]
         if not hasattr(layer_module, 'linear_attn'):
             continue
-        cleanups.append(patch_scale_beta(layer_module.linear_attn, scale, mode=mode))
+        cleanups.append(patch_scale_beta(layer_module.linear_attn, scale))
 
     def cleanup_all():
         for c in cleanups:
@@ -519,7 +557,7 @@ def apply_overrides(model, layers, overrides, debug_log=None):
 def run_single_trial(model, tokenizer, device, prompt_text, target_word, target_score,
                      layers, forced_beta, forced_alpha, max_new_tokens,
                      wrong_beta=None, wrong_alpha=None, ablate_std_attn=False,
-                     beta_scale=None, beta_logit_scale=None):
+                     beta_scale=None):
     """Run one trial with optional gate intervention. Returns (response, is_correct).
 
     forced_beta/forced_alpha: applied at the last (correct) assignment
@@ -545,11 +583,7 @@ def run_single_trial(model, tokenizer, device, prompt_text, target_word, target_
 
     scale_cleanup = None
     if beta_scale is not None:
-        scale_cleanup = apply_beta_scale(model, layers, beta_scale, mode="post")
-
-    logit_scale_cleanup = None
-    if beta_logit_scale is not None:
-        logit_scale_cleanup = apply_beta_scale(model, layers, beta_logit_scale, mode="logit")
+        scale_cleanup = apply_beta_scale(model, layers, beta_scale)
 
     ablate_cleanup = None
     if ablate_std_attn:
@@ -568,8 +602,6 @@ def run_single_trial(model, tokenizer, device, prompt_text, target_word, target_
         cleanup()
     if scale_cleanup:
         scale_cleanup()
-    if logit_scale_cleanup:
-        logit_scale_cleanup()
     if ablate_cleanup:
         ablate_cleanup()
 
@@ -582,42 +614,36 @@ def run_single_trial(model, tokenizer, device, prompt_text, target_word, target_
 def run_intervention_sweep(model, tokenizer, device, duplicate_counts, num_distractors,
                            target_word, target_score, layers, forced_beta, forced_alpha,
                            num_trials, max_new_tokens, wrong_beta_sweep=None,
-                           ablate_std_attn=False, beta_scale_sweep=None,
-                           beta_logit_scale_sweep=None, minimal=False):
+                           ablate_std_attn=False, beta_scale_sweep=None, minimal=False):
     """Run sweep over duplicate counts with multiple conditions.
 
-    Each condition is: (correct_beta, correct_alpha, wrong_beta, wrong_alpha, beta_scale, beta_logit_scale)
+    Each condition is: (correct_beta, correct_alpha, wrong_beta, wrong_alpha, beta_scale)
     """
-    # Build conditions: name -> (cb, ca, wb, wa, beta_scale, beta_logit_scale)
-    conditions = {"baseline": (None, None, None, None, None, None)}
+    # Build conditions: name -> (cb, ca, wb, wa, beta_scale)
+    conditions = {"baseline": (None, None, None, None, None)}
     if not minimal:
         if forced_beta is not None:
-            conditions[f"correct:b={forced_beta}"] = (forced_beta, None, None, None, None, None)
+            conditions[f"correct:b={forced_beta}"] = (forced_beta, None, None, None, None)
         alpha_list = forced_alpha if isinstance(forced_alpha, list) else [forced_alpha] if forced_alpha is not None else []
         for a in alpha_list:
-            conditions[f"correct:a={a}"] = (None, a, None, None, None, None)
+            conditions[f"correct:a={a}"] = (None, a, None, None, None)
         if forced_beta is not None:
             for a in alpha_list:
-                conditions[f"correct:b={forced_beta}+a={a}"] = (forced_beta, a, None, None, None, None)
+                conditions[f"correct:b={forced_beta}+a={a}"] = (forced_beta, a, None, None, None)
 
         # Wrong-position conditions
-        conditions["wrong:b=0"] = (None, None, 0.0, None, None, None)
-        conditions["wrong:b=0 + correct:b=1"] = (1.0, None, 0.0, None, None, None)
+        conditions["wrong:b=0"] = (None, None, 0.0, None, None)
+        conditions["wrong:b=0 + correct:b=1"] = (1.0, None, 0.0, None, None)
 
     # Wrong beta sweep if requested
     if wrong_beta_sweep is not None:
         for wb in wrong_beta_sweep:
-            conditions[f"wrong:b={wb}"] = (None, None, wb, None, None, None)
+            conditions[f"wrong:b={wb}"] = (None, None, wb, None, None)
 
     # Global beta scaling sweep if requested
     if beta_scale_sweep is not None:
         for bs in beta_scale_sweep:
-            conditions[f"beta*={bs}"] = (None, None, None, None, bs, None)
-
-    # Logit scaling sweep if requested
-    if beta_logit_scale_sweep is not None:
-        for bls in beta_logit_scale_sweep:
-            conditions[f"logit*={bls}"] = (None, None, None, None, None, bls)
+            conditions[f"beta*={bs}"] = (None, None, None, None, bs)
 
     # results[condition][dup_count] = accuracy
     results = {name: {} for name in conditions}
@@ -628,7 +654,7 @@ def run_intervention_sweep(model, tokenizer, device, duplicate_counts, num_distr
         print(f"Duplicates: {num_dup}")
         print(f"{'='*50}")
 
-        for cond_name, (cb, ca, wb, wa, bs, bls) in conditions.items():
+        for cond_name, (cb, ca, wb, wa, bs) in conditions.items():
             correct_count = 0
             print(f"\n  Condition: {cond_name}")
 
@@ -643,7 +669,7 @@ def run_intervention_sweep(model, tokenizer, device, duplicate_counts, num_distr
                     layers, cb, ca, max_new_tokens,
                     wrong_beta=wb, wrong_alpha=wa,
                     ablate_std_attn=ablate_std_attn,
-                    beta_scale=bs, beta_logit_scale=bls,
+                    beta_scale=bs,
                 )
 
                 if is_correct:
@@ -837,8 +863,6 @@ if __name__ == "__main__":
                         help="Sweep wrong-position beta values (e.g. 0.0 0.1 0.2 0.3 0.4)")
     parser.add_argument("--beta-scale-sweep", type=float, nargs="+", default=None,
                         help="Sweep global beta scale factors post-sigmoid (e.g. 0.5 1.0 1.5 2.0 3.0)")
-    parser.add_argument("--beta-logit-scale-sweep", type=float, nargs="+", default=None,
-                        help="Sweep pre-sigmoid logit scale factors (e.g. 0.5 1.0 1.5 2.0 3.0)")
     parser.add_argument("--layer", type=int, nargs="+", default=None,
                         help="One or more layers to intervene on (default: all linear attention layers)")
     parser.add_argument("--ablate-standard-attn", action="store_true",
@@ -920,7 +944,6 @@ if __name__ == "__main__":
             wrong_beta_sweep=args.wrong_beta_sweep,
             ablate_std_attn=args.ablate_standard_attn,
             beta_scale_sweep=args.beta_scale_sweep,
-            beta_logit_scale_sweep=args.beta_logit_scale_sweep,
             minimal=args.minimal,
         )
 
