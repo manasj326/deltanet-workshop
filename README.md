@@ -104,5 +104,5 @@ head_ablation.py                #   ↳ used by head_sweep
 replot_head_sweep.py            #   ↳ re-render head_sweep figures from CSVs
 gate_intervention.py            # figure 3,8 11
 long_recall.py                  #   ↳ prompt generator for duplicate recall
-prompts/                        # input prompts (recall, duplicates, position sweeps)
+prompts/                        # input prompts (recall, duplicates)
 ```
