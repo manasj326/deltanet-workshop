@@ -65,11 +65,24 @@ Outputs combined per-prompt heatmaps under `plots/head_sweep_combined/`. To re-r
 
 ### 4. Gate intervention 
 
+This script produces the gate-intervention plots used in the paper.
+
+#### β-scale sweep
+
+```bash
+python gate_intervention.py --sweep-duplicates 0 1 5 10 --trials 15 --distance 50 \
+    --minimal --beta-scale-sweep 0.5 1.0 1.5 2.0 3.0
+```
+This command runs only the baseline plus global β-scaling conditions. β is multiplied post-sigmoid across DeltaNet layers, then clamped to [0, 1].
+
+#### Gate Intervention on correct/wrong positions
+
 ```bash
 python gate_intervention.py --sweep-duplicates 0 1 5 10 --trials 15 --distance 50
 ```
+This command runs the default intervention conditions. It forces gates at assignment-value token positions: the final assignment is treated as the correct update, while earlier conflicting assignments are treated as wrong updates.
 
-Runs the default condition set (baseline, `correct:b=1.0`, `correct:a=0.0`, combined, `wrong:b=0`, and `wrong:b=0 + correct:b=1`) over `{0, 1, 5, 10}` duplicates at distance 50, 15 trials per condition. Outputs `plots/gate_intervention/intervention_sweep.png` and `results.txt`. See `python gate_intervention.py --help` for other sweep modes (`--grid`, `--wrong-beta-sweep`, `--beta-scale-sweep`, etc.).
+Both commands write results to: `plots/gate_intervention/intervention_sweep.png`
 
 ### 5. Synthetic Experiments
 
