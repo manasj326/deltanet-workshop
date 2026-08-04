@@ -1,5 +1,7 @@
 # DeltaNet Mechanistic Interpretability — Workshop Paper Code
 
+**Paper:** [DeltaNet Mechanistic Interpretability Workshop Paper](./_icml2026_workshop__DeltaNet_Analysis.pdf)
+
 Code and processed outputs for reproducing the main analyses and figures in the workshop paper:
 
 1. **Decay-gate analysis** — distribution and per-layer dynamics of the `α` and `β` gates.
